@@ -2,13 +2,18 @@ name := """readflow-scala"""
 
 version := "1.0-SNAPSHOT"
 
+scalaVersion := "2.11.4"
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.1"
+
+resolvers += "bintray" at "http://dl.bintray.com/shinsuke-abe/maven"
 
 libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+  "com.github.Shinsuke-Abe" %% "dropbox4s" % "0.2.0",
+  "org.scalaj" %% "scalaj-http" % "1.0.1"
 )
