@@ -1,4 +1,4 @@
-package models
+package dropbox
 
 import java.security.SecureRandom
 import com.dropbox.core.util.StringUtil
