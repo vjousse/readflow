@@ -5,39 +5,19 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.Configuration
 
-import com.dropbox.core.{DbxAppInfo, DbxAuthFinish, DbxEntry, DbxWebAuthNoRedirect}
-import com.dropbox.core.DbxEntry.WithChildren
-
 import scalaj.http.Http
 
-import dropbox4s.core.CoreApi
-import dropbox4s.core.model.DropboxPath
+import readflow.app.Env
+import readflow.dropbox.{ DropboxInfos, DropboxApi }
 
-import scala.language.postfixOps
-import scala.collection.JavaConverters._
+import com.dropbox.core.DbxEntry
 
-object Dropbox extends Controller with CoreApi {
-
-  val app: Application = Play.unsafeApplication
-  val conf: Configuration = app.configuration
-
-  // Get values from the config file. Don't handle the Option
-  // as we want the application to crash if they are not
-  // provided
-  val applicationName = conf.getString("dropbox.app.name").get
-  val version = conf.getString("dropbox.app.version").get
-  val redirectUri = conf.getString("dropbox.app.redirecturi").get
-  val appKey = conf.getString("dropbox.app.key").get
-  val appSecret = conf.getString("dropbox.app.secret").get
-
-  val appInfo = new DbxAppInfo(appKey, appSecret);
-  val webAuth = new DbxWebAuthNoRedirect(requestConfig, appInfo);
+object Dropbox extends ReadflowController {
 
   def index = Action { request =>
-    val csrf = dropbox.Dropbox.generateCsrf
-
+    val infos : DropboxInfos = Env.dropbox.dropboxApi.infos
     // Store the csrf value in the session
-    Ok(views.html.dropbox.index(appKey, redirectUri, csrf)).withSession(request.session + ("csrf" -> csrf))
+    Ok(views.html.dropbox.index(infos.appKey, infos.redirectUri, infos.csrf)).withSession(request.session + ("csrf" -> infos.csrf))
   }
 
   def authFinish(code: String, state: String) = Action { request =>
@@ -46,9 +26,11 @@ object Dropbox extends Controller with CoreApi {
     request.session.get("csrf").map { csrf =>
 
       if(csrf == state) {
+        val infos : DropboxInfos = Env.dropbox.dropboxApi.infos
+
         val response = Http("https://api.dropbox.com/1/oauth2/token")
-          .postForm(Seq("code" -> code, "grant_type" -> "authorization_code", "redirect_uri" -> redirectUri))
-          .auth(appKey, appSecret)
+          .postForm(Seq("code" -> code, "grant_type" -> "authorization_code", "redirect_uri" -> infos.redirectUri))
+          .auth(infos.appKey, infos.appSecret)
           .asString
 
         if(response.code == 200) {
@@ -73,14 +55,8 @@ object Dropbox extends Controller with CoreApi {
 
     request.session.get("access_token").map { accessToken =>
 
-      // Dirty hack, but dropbox4s requires the full DbxAuthFinish
-      // object, even if it's only using the token
-      implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
-      val appPath = DropboxPath("/")
-      val children: List[DbxEntry] = (appPath children).children.asScala.toList
+      val children: List[DbxEntry] = Env.dropbox.dropboxApi.listDirectory("/", accessToken)
 
-      // List directory
-      //val children: WithChildren = client(accessToken).getMetadataWithChildren("/")
       Ok(views.html.dropbox.listDirectory(children))
     }.getOrElse {
       Unauthorized("No access_token available.")

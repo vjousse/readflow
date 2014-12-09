@@ -26,4 +26,5 @@ object Env {
     system = readflow.app.PlayApp.system,
     appPath = readflow.app.PlayApp withApp (_.path.getCanonicalPath))
 
+  def dropbox = readflow.dropbox.Env.current
 }
