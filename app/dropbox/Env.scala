@@ -20,6 +20,7 @@ final class Env(
   val redirectUri = config.getString("dropbox.app.redirecturi")
   val appKey = config.getString("dropbox.app.key")
   val appSecret = config.getString("dropbox.app.secret")
+  val oauthTokenUri = config.getString("dropbox.oauthtokenuri")
 
   val appInfo = new DbxAppInfo(appKey, appSecret);
 
@@ -28,7 +29,8 @@ final class Env(
     version,
     appKey,
     appSecret,
-    redirectUri)
+    redirectUri,
+    oauthTokenUri)
 
 }
 

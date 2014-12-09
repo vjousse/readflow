@@ -26,7 +26,8 @@ final class DropboxApi(
   appVersion: String,
   appKey: String,
   appSecret: String,
-  redirectUri: String) extends CoreApi {
+  redirectUri: String,
+  oauthTokenUri:String) extends CoreApi {
 
   val applicationName = appName
   val version = appVersion
@@ -46,7 +47,7 @@ final class DropboxApi(
 
   def getAccessToken(code: String): Either[String, String] = {
 
-    val response = Http("https://api.dropbox.com/1/oauth2/token")
+    val response = Http(oauthTokenUri)
       .postForm(Seq("code" -> code, "grant_type" -> "authorization_code", "redirect_uri" -> infos.redirectUri))
       .auth(infos.appKey, infos.appSecret)
       .asString
