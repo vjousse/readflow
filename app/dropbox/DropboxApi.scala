@@ -11,6 +11,10 @@ import com.dropbox.core.DbxEntry.WithChildren
 import scala.language.postfixOps
 import scala.collection.JavaConverters._
 
+import scalaj.http.Http
+
+import play.api.libs.json._
+
 case class DropboxInfos(
   csrf: String,
   appKey: String,
@@ -38,6 +42,22 @@ final class DropboxApi(
       implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
       val appPath = DropboxPath(path)
       (appPath children).children.asScala.toList
+  }
+
+  def getAccessToken(code: String): Either[String, String] = {
+
+    val response = Http("https://api.dropbox.com/1/oauth2/token")
+      .postForm(Seq("code" -> code, "grant_type" -> "authorization_code", "redirect_uri" -> infos.redirectUri))
+      .auth(infos.appKey, infos.appSecret)
+      .asString
+
+      if(response.code == 200) {
+        val json: JsValue = Json.parse(response.body)
+        val access_token = (json \ "access_token").asOpt[String]
+        access_token map { t => Right(t) } getOrElse Left("'access_token' not found in JSON respons")
+      } else {
+        Left("Bad response code from dropbox API: " + response.code)
+      }
   }
 
   def generateCsrf(): String = {
