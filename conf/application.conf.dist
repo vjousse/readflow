@@ -17,6 +17,20 @@ application.langs="en"
 dropbox.app.key = "YOUR_APP_KEY"
 dropbox.app.secret = "YOUR_APP_SECRET";
 
+dropbox.app.name = "Readflow"
+dropbox.app.version = "0.0.1"
+dropbox.app.redirecturi = "http://localhost:9000/dropbox/auth-finish"
+
+
+# MongoDB configuration using ReactiveMongo plugin
+mongodb.uri = "mongodb://localhost:27017/readflow"
+
+
+mongo-async-driver {
+  akka {
+    loglevel = WARNING
+  }
+}
 # Global object class
 # ~~~~~
 # Define the Global object class for this application.
