@@ -1,8 +1,6 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
-import play.api.Configuration
 
 import readflow.app.Env
 import readflow.dropbox.{ DropboxInfos, DropboxApi }
