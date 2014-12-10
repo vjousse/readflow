@@ -27,7 +27,7 @@ object Dropbox extends ReadflowController {
 
       if(csrf == state) {
           Env.dropbox.dropboxApi.getAccessToken(code) match {
-            case Left(err)    => Future(InternalServerError("Error when finishing the oAuth process: " + err))
+            case Left(err)    => Future.successful(InternalServerError("Error when finishing the oAuth process: " + err))
             case Right(token) => {
               Env.current.userApi.insert(User.createWithToken(token)).map {
                 lastError => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
@@ -35,9 +35,9 @@ object Dropbox extends ReadflowController {
             }
           }
       } else
-        Future(Unauthorized("Csrf values doesn't match."))
+        Future.successful(Unauthorized("Csrf values doesn't match."))
     }.getOrElse {
-      Future(Unauthorized("Bad csrf value."))
+      Future.successful(Unauthorized("Bad csrf value."))
     }
   }
 
