@@ -25,7 +25,7 @@ object Dropbox extends ReadflowController {
     request.session.get("csrf").map { csrf =>
 
       if(csrf == state) {
-          val test: play.api.mvc.Result = Env.dropbox.dropboxApi.getAccessToken(code) match {
+          Env.dropbox.dropboxApi.getAccessToken(code) match {
             case Left(err)    => InternalServerError("Error when finishing the oAuth process: " + err)
             case Right(token) => {
               Env.current.userApi.insert(User.createWithToken(token)).onComplete {
