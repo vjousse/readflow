@@ -3,9 +3,13 @@ package controllers
 import play.api.mvc._
 
 import readflow.app.Env
+import readflow.user.User
 import readflow.dropbox.{ DropboxInfos, DropboxApi }
 
 import com.dropbox.core.DbxEntry
+import scala.util.{Success, Failure}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Dropbox extends ReadflowController {
 
@@ -21,9 +25,14 @@ object Dropbox extends ReadflowController {
     request.session.get("csrf").map { csrf =>
 
       if(csrf == state) {
-          Env.dropbox.dropboxApi.getAccessToken(code) match {
+          val test: play.api.mvc.Result = Env.dropbox.dropboxApi.getAccessToken(code) match {
             case Left(err)    => InternalServerError("Error when finishing the oAuth process: " + err)
-            case Right(token) => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
+            case Right(token) => {
+              Env.current.userApi.insert(User.createWithToken(token)).onComplete {
+                case Failure(e) => InternalServerError("Error when inserting into mongodb: " + e)
+                case Success(lastError) => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
+              }
+            }
           }
       } else
         Unauthorized("Csrf values doesn't match.")

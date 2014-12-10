@@ -1,10 +1,13 @@
 package readflow.app
 
+import readflow.user.UserApi
+
 import akka.actor._
 import com.typesafe.config.Config
 
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DB
+import reactivemongo.api.collections.default.BSONCollection
 
 
 final class Env(
@@ -16,6 +19,9 @@ final class Env(
     import play.api.Play.current
     ReactiveMongoPlugin.db
   }
+
+  lazy val userApi = new UserApi(
+    db[BSONCollection]("user"))
 
 }
 
