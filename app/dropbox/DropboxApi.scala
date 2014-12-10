@@ -10,6 +10,8 @@ import com.dropbox.core.DbxEntry.WithChildren
 
 import scala.language.postfixOps
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scalaj.http.Http
 
@@ -36,7 +38,7 @@ final class DropboxApi(
 
   val infos = DropboxInfos(csrf, appKey, appSecret, redirectUri)
 
-  def listDirectory(path: String, accessToken: String): List[DbxEntry] = {
+  def listDirectory(path: String, accessToken: String): Future[List[DbxEntry]] = Future {
 
       // Dirty hack, but dropbox4s requires the full DbxAuthFinish
       // object, even if it's only using the token

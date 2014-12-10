@@ -41,15 +41,14 @@ object Dropbox extends ReadflowController {
     }
   }
 
-  def listDirectory() = Action { request =>
+  def listDirectory() = Action.async { request =>
 
     request.session.get("access_token").map { accessToken =>
-
-      val children: List[DbxEntry] = Env.dropbox.dropboxApi.listDirectory("/", accessToken)
-
-      Ok(views.html.dropbox.listDirectory(children))
+      Env.dropbox.dropboxApi.listDirectory("/", accessToken).map { children =>
+        Ok(views.html.dropbox.listDirectory(children))
+      }
     }.getOrElse {
-      Unauthorized("No access_token available.")
+      Future.successful(Unauthorized("No access_token available."))
     }
 
   }
