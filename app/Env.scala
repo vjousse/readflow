@@ -13,7 +13,8 @@ import reactivemongo.api.collections.default.BSONCollection
 final class Env(
     config: Config,
     system: ActorSystem,
-    appPath: String) {
+    appPath: String,
+    scheduler: Scheduler) {
 
   lazy val db = {
     import play.api.Play.current
@@ -30,7 +31,8 @@ object Env {
   lazy val current = new Env(
     config = readflow.app.PlayApp.loadConfig,
     system = readflow.app.PlayApp.system,
-    appPath = readflow.app.PlayApp withApp (_.path.getCanonicalPath))
+    appPath = readflow.app.PlayApp withApp (_.path.getCanonicalPath),
+    scheduler = readflow.app.PlayApp.scheduler)
 
   def dropbox = readflow.dropbox.Env.current
 }

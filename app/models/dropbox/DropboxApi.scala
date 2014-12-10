@@ -1,5 +1,6 @@
 package readflow.dropbox
 
+import readflow.user.User
 import java.security.SecureRandom
 import com.dropbox.core.util.StringUtil
 
@@ -72,4 +73,11 @@ final class DropboxApi(
   }
 
 
+  def syncFilesForUser(user: User) = {
+
+  }
+
+  def syncFiles() = {
+    println("syncing files")
+  }
 }

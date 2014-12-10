@@ -17,6 +17,10 @@ object PlayApp {
     play.api.libs.concurrent.Akka.system
   }
 
+  private def enableScheduler = !(loadConfig getBoolean "app.scheduler.disabled")
+
+  def scheduler = system.scheduler
+
   lazy val isDev = isMode(_.Dev)
   lazy val isTest = isMode(_.Test)
   lazy val isProd = isMode(_.Prod) && !loadConfig.getBoolean("forcedev")

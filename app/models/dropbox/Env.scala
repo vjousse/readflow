@@ -3,13 +3,16 @@ package readflow.dropbox
 import akka.actor._
 import com.typesafe.config.Config
 
+import play.api.libs.concurrent.Execution.Implicits._
 import com.dropbox.core.{DbxAppInfo, DbxAuthFinish, DbxEntry, DbxWebAuthNoRedirect}
 import com.dropbox.core.DbxEntry.WithChildren
+import scala.concurrent.duration._
 
 final class Env(
     config: Config,
     system: ActorSystem,
-    appPath: String) {
+    appPath: String,
+    scheduler: Scheduler) {
 
 
   // Get values from the config file. Don't handle the Option
@@ -32,6 +35,8 @@ final class Env(
     redirectUri,
     oauthTokenUri)
 
+  // Sync Dropbox files every minute
+  scheduler.schedule(0.microsecond, 1.minute)(dropboxApi.syncFiles)
 }
 
 object Env {
@@ -39,6 +44,7 @@ object Env {
   lazy val current = new Env(
     config = readflow.app.PlayApp.loadConfig,
     system = readflow.app.PlayApp.system,
-    appPath = readflow.app.PlayApp withApp (_.path.getCanonicalPath))
+    appPath = readflow.app.PlayApp withApp (_.path.getCanonicalPath),
+    scheduler = readflow.app.PlayApp.scheduler)
 
 }
