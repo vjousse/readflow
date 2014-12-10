@@ -10,6 +10,7 @@ import com.dropbox.core.DbxEntry
 import scala.util.{Success, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Dropbox extends ReadflowController {
 
@@ -19,25 +20,24 @@ object Dropbox extends ReadflowController {
     Ok(views.html.dropbox.index(infos.appKey, infos.redirectUri, infos.csrf)).withSession(request.session + ("csrf" -> infos.csrf))
   }
 
-  def authFinish(code: String, state: String) = Action { request =>
+  def authFinish(code: String, state: String) = Action.async { request =>
     // Check if the csrf sent by the callback is the same than the one
     // we previously stored in the session
     request.session.get("csrf").map { csrf =>
 
       if(csrf == state) {
           Env.dropbox.dropboxApi.getAccessToken(code) match {
-            case Left(err)    => InternalServerError("Error when finishing the oAuth process: " + err)
+            case Left(err)    => Future(InternalServerError("Error when finishing the oAuth process: " + err))
             case Right(token) => {
-              Env.current.userApi.insert(User.createWithToken(token)).onComplete {
-                case Failure(e) => InternalServerError("Error when inserting into mongodb: " + e)
-                case Success(lastError) => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
+              Env.current.userApi.insert(User.createWithToken(token)).map {
+                lastError => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
               }
             }
           }
       } else
-        Unauthorized("Csrf values doesn't match.")
+        Future(Unauthorized("Csrf values doesn't match."))
     }.getOrElse {
-      Unauthorized("Bad csrf value.")
+      Future(Unauthorized("Bad csrf value."))
     }
   }
 
