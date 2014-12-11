@@ -24,6 +24,7 @@ final class Env(
   val appKey = config.getString("dropbox.app.key")
   val appSecret = config.getString("dropbox.app.secret")
   val oauthTokenUri = config.getString("dropbox.oauthtokenuri")
+  val deltaUri = config.getString("dropbox.deltauri")
 
   val appInfo = new DbxAppInfo(appKey, appSecret);
 
@@ -33,7 +34,8 @@ final class Env(
     appKey,
     appSecret,
     redirectUri,
-    oauthTokenUri)
+    oauthTokenUri,
+    deltaUri)
 
   // Sync Dropbox files every minute
   scheduler.schedule(0.microsecond, 1.minute)(dropboxApi.syncFiles)

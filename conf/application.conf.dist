@@ -21,6 +21,7 @@ dropbox.app.name = "Readflow"
 dropbox.app.version = "0.0.1"
 dropbox.app.redirecturi = "http://localhost:9000/dropbox/auth-finish"
 dropbox.oauthtokenuri = "https://api.dropbox.com/1/oauth2/token"
+dropbox.deltauri = "https://api.dropbox.com/1/delta"
 
 # MongoDB configuration using ReactiveMongo plugin
 mongodb.uri = "mongodb://localhost:27017/readflow"

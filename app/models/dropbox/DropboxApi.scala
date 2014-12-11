@@ -14,9 +14,12 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import scalaj.http.Http
+import scalaj.http.{ Http, HttpResponse }
 
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
+import readflow.dropbox.Reads._
 
 case class DropboxInfos(
   csrf: String,
@@ -30,7 +33,8 @@ final class DropboxApi(
   appKey: String,
   appSecret: String,
   redirectUri: String,
-  oauthTokenUri:String) extends CoreApi {
+  oauthTokenUri:String,
+  deltaUri: String) extends CoreApi {
 
   val applicationName = appName
   val version = appVersion
@@ -47,6 +51,10 @@ final class DropboxApi(
       val appPath = DropboxPath(path)
       (appPath children).children.asScala.toList
   }
+
+  def parseResponse(response: HttpResponse[String]): Either[String, String] =
+      if(response.code == 200) Right(response.body)
+      else Left("Bad response code from dropbox API: " + response.code + "\n" + response.body)
 
   def getAccessToken(code: String): Either[String, String] = {
 
@@ -79,5 +87,20 @@ final class DropboxApi(
 
   def syncFiles() = {
     println("syncing files")
+  }
+
+  def getDeltaForToken(token: String): Either[String, List[(String, Option[Metadata])]] = {
+
+    val response = Http(deltaUri)
+      .method("POST")
+      .headers("Authorization" -> s"Bearer $token")
+      .asString
+
+    parseResponse(response).right.map { body =>
+      val json = Json.parse(body)
+      for(entry <- json.as[Delta].entries)
+        yield (entry(0).as[String], entry(1).asOpt[Metadata])
+    }
+
   }
 }
