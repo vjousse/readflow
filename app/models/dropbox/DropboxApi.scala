@@ -63,13 +63,9 @@ final class DropboxApi(
       .auth(infos.appKey, infos.appSecret)
       .asString
 
-      if(response.code == 200) {
-        val json: JsValue = Json.parse(response.body)
-        val access_token = (json \ "access_token").asOpt[String]
-        access_token map { t => Right(t) } getOrElse Left("'access_token' not found in JSON respons")
-      } else {
-        Left("Bad response code from dropbox API: " + response.code)
-      }
+    parseResponse(response).right.map { body =>
+        (Json.parse(body) \ "access_token").as[String]
+    }
   }
 
   def generateCsrf(): String = {
