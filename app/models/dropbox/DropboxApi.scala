@@ -13,6 +13,7 @@ import scala.language.postfixOps
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.immutable.HashMap
 
 import scalaj.http.{ Http, HttpResponse }
 
@@ -77,26 +78,48 @@ final class DropboxApi(
   }
 
 
-  def syncFilesForUser(user: User) = {
+  def syncFilesForToken(token: String): HashMap[String, Option[Metadata]]= {
 
+    val files = getDeltasForToken(token).foldLeft(HashMap[String, Option[Metadata]]()) { (acc, delta) =>
+      delta.entries.foldLeft(acc) { (acc2, entry) =>
+        acc2 + ((entry._1, entry._2))
+      }
+
+    }
+
+    files
   }
 
   def syncFiles() = {
     println("syncing files")
   }
 
-  def getDeltaForToken(token: String): Either[String, List[(String, Option[Metadata])]] = {
+  def getDeltasForToken(
+    token: String,
+    cursor: Option[String] = None): List[Delta] = {
 
     val response = Http(deltaUri)
       .method("POST")
       .headers("Authorization" -> s"Bearer $token")
       .asString
 
-    parseResponse(response).right.map { body =>
-      val json = Json.parse(body)
-      for(entry <- json.as[Delta].entries)
-        yield (entry(0).as[String], entry(1).asOpt[Metadata])
+    parseResponse(response) match {
+      case Left(err) => Nil
+      case Right(body) => {
+
+        val deltaJson = Json.parse(body).as[JsonDelta]
+        val delta = deltaJson.toDelta{
+          for(entry <- deltaJson.entries)
+            yield (entry(0).as[String], entry(1).asOpt[Metadata])}
+
+        if(delta.hasMore) {
+          List(delta) ++ getDeltasForToken(token, Some(delta.cursor))
+        } else {
+          List(delta)
+        }
+      }
     }
 
   }
+
 }

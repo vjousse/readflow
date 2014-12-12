@@ -44,7 +44,7 @@ object Dropbox extends ReadflowController {
   def listDirectory() = Action.async { request =>
 
     request.session.get("access_token").map { accessToken =>
-      Env.dropbox.dropboxApi.getDeltaForToken(accessToken)
+      Env.dropbox.dropboxApi.syncFilesForToken(accessToken)
       Env.dropbox.dropboxApi.listDirectory("/", accessToken).map { children =>
         Ok(views.html.dropbox.listDirectory(children))
       }

@@ -20,6 +20,16 @@ final class UserApi(
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
 
+  def updateCursorForToken(cursor: String, token: String): Future[LastError] = {
+    val selector = BSONDocument("accessToken" -> token)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument("cursor" -> cursor)
+    )
+
+    // get a future update
+    userColl.update(selector, modifier)
+  }
 
 }
 

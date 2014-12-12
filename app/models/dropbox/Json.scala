@@ -3,10 +3,22 @@ package readflow.dropbox
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
+case class JsonDelta(
+  hasMore: Boolean,
+  reset: Boolean,
+  cursor: String,
+  entries: List[List[JsValue]]) {
+
+  def toDelta(e: List[(String, Option[Metadata])]): Delta =
+    Delta(hasMore, reset, cursor, e)
+
+}
+
 case class Delta(
   hasMore: Boolean,
+  reset: Boolean,
   cursor: String,
-  entries: List[List[JsValue]])
+  entries: List[(String, Option[Metadata])])
 
 
 case class Metadata(
@@ -23,11 +35,12 @@ case class Metadata(
 
 object Reads {
 
-  implicit val deltaReads: Reads[Delta] = (
+  implicit val jsonDeltaReads: Reads[JsonDelta] = (
     (JsPath \ "has_more").read[Boolean] and
+    (JsPath \ "reset").read[Boolean] and
     (JsPath \ "cursor").read[String] and
     (JsPath \ "entries").read[List[List[JsValue]]]
-  )(Delta.apply _)
+  )(JsonDelta.apply _)
 
   implicit val metadataReads: Reads[Metadata] = (
     (JsPath \ "bytes").read[Int] and
