@@ -26,12 +26,14 @@ final class UserApi(
   def getOrInsertUser(accessToken: String): Future[User] = {
 
     val accountInfo = Env.dropbox.dropboxApi.getAccountInfoForToken(accessToken)
-    val query = BSONDocument("dropboxUserId" -> "Stephane")
+    val query = BSONDocument("dropboxUserId" -> accountInfo.userId)
     val future: Future[Option[User]] = userColl.find(query).one
 
     future.flatMap { f =>
       f match {
+        //If we found the user in the DB, return it
         case Some(user) => Future.successful(user)
+        //If not, create it
         case None => {
           val user = User(BSONObjectID.generate, accessToken, accountInfo.userId)
           insert(user) map { lastError => user }
