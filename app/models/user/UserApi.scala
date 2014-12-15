@@ -1,6 +1,9 @@
 package readflow.user
 
+import readflow.app.Env
+
 import scala.concurrent.Future
+import scala.util.{Success, Failure}
 
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{ BSONObjectID, BSONDocument }
@@ -19,6 +22,24 @@ final class UserApi(
 
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
+
+  def getOrInsertUser(accessToken: String): Future[User] = {
+
+    val accountInfo = Env.dropbox.dropboxApi.getAccountInfoForToken(accessToken)
+    val query = BSONDocument("dropboxUserId" -> "Stephane")
+    val future: Future[Option[User]] = userColl.find(query).one
+
+    future.flatMap { f =>
+      f match {
+        case Some(user) => Future.successful(user)
+        case None => {
+          val user = User(BSONObjectID.generate, accessToken, accountInfo.userId)
+          insert(user) map { lastError => user }
+        }
+      }
+    }
+
+  }
 
   def updateCursorForToken(cursor: String, token: String): Future[LastError] = {
     val selector = BSONDocument("accessToken" -> token)

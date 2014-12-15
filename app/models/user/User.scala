@@ -1,17 +1,16 @@
 package readflow.user
+import readflow.app.Env
 
 import reactivemongo.bson.BSONObjectID
 
 case class User(
   _id: BSONObjectID,
   accessToken: String,
+  dropboxUserId: Long,
   lastDropboxCursor: Option[String] = None)
 
 object User {
   import reactivemongo.bson.Macros
   implicit val userBSONHandler = Macros.handler[User]
-
-  def createWithToken(accessToken: String): User =
-    User(BSONObjectID.generate, accessToken)
 
 }

@@ -29,8 +29,8 @@ object Dropbox extends ReadflowController {
           Env.dropbox.dropboxApi.getAccessToken(code) match {
             case Left(err)    => Future.successful(InternalServerError("Error when finishing the oAuth process: " + err))
             case Right(token) => {
-              Env.current.userApi.insert(User.createWithToken(token)).map {
-                lastError => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
+              Env.current.userApi.getOrInsertUser(token).map {
+                user => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
               }
             }
           }
