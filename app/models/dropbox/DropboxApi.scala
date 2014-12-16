@@ -6,7 +6,7 @@ import com.dropbox.core.util.StringUtil
 
 import dropbox4s.core.CoreApi
 import dropbox4s.core.model.DropboxPath
-import com.dropbox.core.{ DbxAuthFinish, DbxEntry }
+import com.dropbox.core.{ DbxAccountInfo, DbxAuthFinish, DbxEntry }
 import com.dropbox.core.DbxEntry.WithChildren
 
 import scala.language.postfixOps
@@ -78,20 +78,26 @@ final class DropboxApi(
   }
 
 
-  def syncFilesForToken(token: String): HashMap[String, Option[Metadata]]= {
+  def syncFilesForUser(user: User) = {
 
-    val files = getDeltasForToken(token).foldLeft(HashMap[String, Option[Metadata]]()) { (acc, delta) =>
-      delta.entries.foldLeft(acc) { (acc2, entry) =>
-        acc2 + ((entry._1, entry._2))
-      }
+    val deltas = getDeltasForToken(user.accessToken)
 
+    deltas.map { delta =>
+      //Todo
     }
 
-    files
+  }
+
+  def downloadFile(remotePath: String, localPath: String) = {
+
   }
 
   def syncFiles() = {
     println("syncing files")
+  }
+
+  def getAccountInfoForToken(token: String): DbxAccountInfo= {
+    client(token).getAccountInfo()
   }
 
   def getDeltasForToken(

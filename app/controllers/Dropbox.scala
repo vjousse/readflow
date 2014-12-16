@@ -30,7 +30,9 @@ object Dropbox extends ReadflowController {
             case Left(err)    => Future.successful(InternalServerError("Error when finishing the oAuth process: " + err))
             case Right(token) => {
               Env.current.userApi.getOrInsertUser(token).map {
-                user => Ok(views.html.dropbox.authFinish()).withSession(request.session + ("access_token" -> token))
+                user => Ok(views.html.dropbox.authFinish()).withSession(
+                  request.session +
+                  ("user_id" -> addUserToCache(user).dropboxUserId.toString))
               }
             }
           }
@@ -43,13 +45,15 @@ object Dropbox extends ReadflowController {
 
   def listDirectory() = Action.async { request =>
 
-    request.session.get("access_token").map { accessToken =>
-      Env.dropbox.dropboxApi.syncFilesForToken(accessToken)
-      Env.dropbox.dropboxApi.listDirectory("/", accessToken).map { children =>
-        Ok(views.html.dropbox.listDirectory(children))
+    request.session.get("user_id").flatMap { userId =>
+      getUserFromCache(userId).map { user =>
+        Env.dropbox.dropboxApi.syncFilesForUser(user)
+        Env.dropbox.dropboxApi.listDirectory("/", user.accessToken).map { children =>
+          Ok(views.html.dropbox.listDirectory(children))
+        }
       }
     }.getOrElse {
-      Future.successful(Unauthorized("No access_token available."))
+      Future.successful(Unauthorized("No user available in session."))
     }
 
   }
