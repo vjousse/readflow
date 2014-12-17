@@ -32,7 +32,7 @@ object Dropbox extends ReadflowController {
               Env.current.userApi.getOrInsertUser(token).map {
                 user => Ok(views.html.dropbox.authFinish()).withSession(
                   request.session +
-                  ("user_id" -> addUserToCache(user).dropboxUserId.toString))
+                  ("user_id" -> user.dropboxUserId.toString))
               }
             }
           }

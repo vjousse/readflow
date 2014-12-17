@@ -19,9 +19,6 @@ private[controllers] trait ReadflowController
   }
 
   def getUser(id: String): Future[Option[User]] =
-    Cache.getAs[User](id) match {
-      case Some(user) => Future.successful(Some(user))
-      case None => Env.current.userApi.findByDropboxId(id.toLong)
-    }
+      Env.current.userApi.findByDropboxId(id.toLong)
 
 }
