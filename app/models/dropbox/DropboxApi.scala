@@ -3,6 +3,7 @@ package readflow.dropbox
 import readflow.user.User
 import readflow.app.{ Env => AppEnv }
 import java.security.SecureRandom
+import java.io.File
 import com.dropbox.core.util.StringUtil
 
 import dropbox4s.core.CoreApi
@@ -23,6 +24,8 @@ import play.api.libs.functional.syntax._
 
 import readflow.dropbox.Reads._
 
+import org.apache.commons.io.FileUtils
+
 case class DropboxInfos(
   csrf: String,
   appKey: String,
@@ -36,7 +39,8 @@ final class DropboxApi(
   appSecret: String,
   redirectUri: String,
   oauthTokenUri:String,
-  deltaUri: String) extends CoreApi {
+  deltaUri: String,
+  storagePath: String) extends CoreApi {
 
   val applicationName = appName
   val version = appVersion
@@ -44,6 +48,8 @@ final class DropboxApi(
   val csrf = generateCsrf()
 
   val infos = DropboxInfos(csrf, appKey, appSecret, redirectUri)
+
+  def getLocalUserDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator
 
   def listDirectory(path: String, accessToken: String): Future[List[DbxEntry]] = Future {
 
@@ -84,19 +90,41 @@ final class DropboxApi(
     val deltas = getDeltasForUser(user)
 
     deltas.map { delta =>
-      delta.entries.map {
-        _ match {
-          case (path, Some(metadata)) => println("should sync: " + path)
-          case (path, None) => println("should delete")
-        }
-      }
+      if(delta.reset) resetUserDir(user)
+      delta.entries.map { case (path, metadata) => syncFileMetadataForUser(user, path, metadata) }
       AppEnv.current.userApi.updateCursorForUser(delta.cursor, user)
     }
 
   }
 
-  def downloadFile(remotePath: String, localPath: String) = {
+  def syncFileMetadataForUser(user: User, path: String, metadata: Option[Metadata]) = {
+    val localFile = new File(getLocalUserDir(user) + path)
+    metadata match {
+      case Some(metadata)                                         =>
+        if (metadata.isDir) FileUtils.forceMkdir(localFile)
+        else downloadFile(path, localFile.getAbsolutePath(), user.accessToken)
+      case None if localFile.exists() && localFile.isDirectory()  => {
+        //println("Deleting directory " + localFile)
+        FileUtils.deleteDirectory(localFile)
+      }
+      case None if localFile.exists() && !localFile.isDirectory() => {
+        //println("Deleting file " + localFile)
+        localFile.delete()
+      }
+      case _                                                      => println(s"Doing nothing, local file $localFile doesn't exist")
+    }
+  }
 
+
+  def resetUserDir(user: User) =
+    FileUtils.deleteQuietly(new File(getLocalUserDir(user)))
+
+  def downloadFile(remotePath: String, localPath: String, accessToken: String) = {
+    // Dirty hack, but dropbox4s requires the full DbxAuthFinish
+    // object, even if it's only using the token
+    implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
+    val dropboxPath = DropboxPath(remotePath)
+    dropboxPath downloadTo localPath
   }
 
   def syncFiles() = {

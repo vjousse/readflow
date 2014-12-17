@@ -27,8 +27,8 @@ case class Metadata(
   revision: Int,
   icon: String,
   path: String,
-  is_dir: Boolean,
-  thumb_exists: Boolean,
+  isDir: Boolean,
+  thumbExists: Boolean,
   root: String,
   modified: String,
   size: String)

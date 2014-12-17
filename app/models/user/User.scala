@@ -7,6 +7,8 @@ case class User(
   _id: BSONObjectID,
   accessToken: String,
   dropboxUserId: Long,
+  displayName: String,
+  country: String,
   cursor: Option[String] = None)
 
 object User {

@@ -38,7 +38,12 @@ final class UserApi(
         case Some(user) => Future.successful(user)
         //If not, create it
         case None => {
-          val user = User(BSONObjectID.generate, accessToken, accountInfo.userId)
+          val user = User(
+            BSONObjectID.generate,
+            accessToken,
+            accountInfo.userId,
+            accountInfo.displayName,
+            accountInfo.country)
           insert(user) map { lastError => user }
         }
       }
