@@ -7,6 +7,7 @@ import play.api.Play.current
 import readflow.app._
 
 import readflow.user.User
+import scala.concurrent.Future
 
 private[controllers] trait ReadflowController
     extends Controller {
@@ -17,7 +18,10 @@ private[controllers] trait ReadflowController
     user
   }
 
-  def getUserFromCache(id: String): Option[User] =
-    Cache.getAs[User](id)
+  def getUser(id: String): Future[Option[User]] =
+    Cache.getAs[User](id) match {
+      case Some(user) => Future.successful(Some(user))
+      case None => Env.current.userApi.findByDropboxId(id.toLong)
+    }
 
 }
