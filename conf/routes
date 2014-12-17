@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                                  controllers.Application.index
+GET     /logout                            controllers.Application.logout
 
 GET     /dropbox                           controllers.Dropbox.index
 GET     /dropbox/auth-finish               controllers.Dropbox.authFinish(code: String ?="", state: String ?="")

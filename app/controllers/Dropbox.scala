@@ -14,13 +14,13 @@ import scala.concurrent.Future
 
 object Dropbox extends ReadflowController {
 
-  def index = Action { request =>
+  def index = Action { implicit request =>
     val infos : DropboxInfos = Env.dropbox.dropboxApi.infos
     // Store the csrf value in the session
     Ok(views.html.dropbox.index(infos.appKey, infos.redirectUri, infos.csrf)).withSession(request.session + ("csrf" -> infos.csrf))
   }
 
-  def authFinish(code: String, state: String) = Action.async { request =>
+  def authFinish(code: String, state: String) = Action.async { implicit request =>
     // Check if the csrf sent by the callback is the same than the one
     // we previously stored in the session
     request.session.get("csrf").map { csrf =>
@@ -30,9 +30,10 @@ object Dropbox extends ReadflowController {
             case Left(err)    => Future.successful(InternalServerError("Error when finishing the oAuth process: " + err))
             case Right(token) => {
               Env.current.userApi.getOrInsertUser(token).map {
-                user => Ok(views.html.dropbox.authFinish()).withSession(
+                user => Redirect(routes.Dropbox.listDirectory()).withSession(
                   request.session +
-                  ("user_id" -> user.dropboxUserId.toString))
+                  ("user_id" -> user.dropboxUserId.toString) +
+                  ("username" -> user.displayName))
               }
             }
           }
@@ -43,7 +44,7 @@ object Dropbox extends ReadflowController {
     }
   }
 
-  def listDirectory() = Action.async { request =>
+  def listDirectory() = Action.async { implicit request =>
 
     request.session.get("user_id").map { userId =>
       getUser(userId).flatMap { maybeUser =>
