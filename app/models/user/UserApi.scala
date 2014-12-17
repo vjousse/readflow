@@ -19,6 +19,9 @@ final class UserApi(
   def find(id: BSONObjectID): Future[Option[User]] =
     userColl.find(BSONDocument("_id" -> id)).one[User]
 
+  def findByDropboxId(id: Long): Future[Option[User]] =
+    userColl.find(BSONDocument("dropboxUserId" -> id)).one[User]
+
 
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
@@ -43,8 +46,8 @@ final class UserApi(
 
   }
 
-  def updateCursorForToken(cursor: String, token: String): Future[LastError] = {
-    val selector = BSONDocument("accessToken" -> token)
+  def updateCursorForUser(cursor: String, user: User): Future[LastError] = {
+    val selector = BSONDocument("accessToken" -> user.accessToken)
 
     val modifier = BSONDocument(
       "$set" -> BSONDocument("cursor" -> cursor)

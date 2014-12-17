@@ -7,7 +7,7 @@ case class User(
   _id: BSONObjectID,
   accessToken: String,
   dropboxUserId: Long,
-  lastDropboxCursor: Option[String] = None)
+  cursor: Option[String] = None)
 
 object User {
   import reactivemongo.bson.Macros

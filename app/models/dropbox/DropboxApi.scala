@@ -1,6 +1,7 @@
 package readflow.dropbox
 
 import readflow.user.User
+import readflow.app.{ Env => AppEnv }
 import java.security.SecureRandom
 import com.dropbox.core.util.StringUtil
 
@@ -80,10 +81,16 @@ final class DropboxApi(
 
   def syncFilesForUser(user: User) = {
 
-    val deltas = getDeltasForToken(user.accessToken)
+    val deltas = getDeltasForUser(user)
 
     deltas.map { delta =>
-      //Todo
+      delta.entries.map {
+        _ match {
+          case (path, Some(metadata)) => println("should sync: " + path)
+          case (path, None) => println("should delete")
+        }
+      }
+      AppEnv.current.userApi.updateCursorForUser(delta.cursor, user)
     }
 
   }
@@ -100,26 +107,26 @@ final class DropboxApi(
     client(token).getAccountInfo()
   }
 
-  def getDeltasForToken(
-    token: String,
-    cursor: Option[String] = None): List[Delta] = {
-
-    val response = Http(deltaUri)
+  def getDeltasForUser(user: User): List[Delta] = {
+    val cursor = user.cursor.map(c => s"?cursor=$c").getOrElse("")
+    val response = Http(deltaUri + cursor)
       .method("POST")
-      .headers("Authorization" -> s"Bearer $token")
+      .headers("Authorization" -> s"Bearer ${user.accessToken}")
       .asString
 
     parseResponse(response) match {
-      case Left(err) => Nil
+      case Left(err) => {
+        println("Error when getting deltas: " + response)
+        Nil
+      }
       case Right(body) => {
-
         val deltaJson = Json.parse(body).as[JsonDelta]
         val delta = deltaJson.toDelta{
           for(entry <- deltaJson.entries)
             yield (entry(0).as[String], entry(1).asOpt[Metadata])}
 
         if(delta.hasMore) {
-          List(delta) ++ getDeltasForToken(token, Some(delta.cursor))
+          List(delta) ++ getDeltasForUser(user.copy(cursor = Some(delta.cursor)))
         } else {
           List(delta)
         }
