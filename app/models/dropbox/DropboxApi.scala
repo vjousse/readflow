@@ -129,6 +129,10 @@ final class DropboxApi(
 
   def syncFiles() = {
     println("syncing files")
+    val fuUsers: Future[List[User]] = AppEnv.current.userApi.findAll()
+    fuUsers.map { users =>
+      users.map( user => syncFilesForUser(user) )
+    }
   }
 
   def getAccountInfoForToken(token: String): DbxAccountInfo= {

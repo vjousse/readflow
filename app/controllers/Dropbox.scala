@@ -48,7 +48,6 @@ object Dropbox extends ReadflowController {
     request.session.get("user_id").map { userId =>
       getUser(userId).flatMap { maybeUser =>
         maybeUser.map { user =>
-          Env.dropbox.dropboxApi.syncFilesForUser(user)
           Env.dropbox.dropboxApi.listDirectory("/", user.accessToken).map { children =>
             Ok(views.html.dropbox.listDirectory(children))
           }

@@ -22,6 +22,12 @@ final class UserApi(
   def findByDropboxId(id: Long): Future[Option[User]] =
     userColl.find(BSONDocument("dropboxUserId" -> id)).one[User]
 
+  def findAll(): Future[List[User]] =
+    userColl.
+    find(BSONDocument()).
+    cursor[User].
+    collect[List]()
+
 
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
