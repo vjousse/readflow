@@ -49,7 +49,7 @@ object Dropbox extends ReadflowController {
     request.session.get("user_id").map { userId =>
       getUser(userId).flatMap { maybeUser =>
         maybeUser.map { user =>
-          Env.dropbox.dropboxApi.listDirectory("/", user.accessToken).map { children =>
+          Env.current.ebookApi.listDirectoryForUser("/", user).map { children =>
             Ok(views.html.dropbox.listDirectory(children))
           }
         }.getOrElse {

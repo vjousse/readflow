@@ -1,6 +1,7 @@
 package readflow.app
 
 import readflow.user.UserApi
+import readflow.ebook.EbookApi
 
 import akka.actor._
 import com.typesafe.config.Config
@@ -16,13 +17,18 @@ final class Env(
     appPath: String,
     scheduler: Scheduler) {
 
+  val storagePath = config.getString("dropbox.storagePath")
+
   lazy val db = {
     import play.api.Play.current
     ReactiveMongoPlugin.db
   }
 
   lazy val userApi = new UserApi(
-    db[BSONCollection]("user"))
+    db[BSONCollection]("user"),
+    storagePath)
+
+  lazy val ebookApi = new EbookApi(userApi)
 
 }
 

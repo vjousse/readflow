@@ -1,11 +1,11 @@
-@(children: List[com.dropbox.core.DbxEntry])(implicit session: Session)
+@(children: List[java.io.File])(implicit session: Session)
 
 @main("Listing directory") {
     <h1>Listing directory</h1>
 
     <ul>
     @for(child <- children) {
-        <li>@child.name : @child.toString()</li>
+        <li>@child</li>
     }
     </ul>
 }

@@ -111,7 +111,8 @@ final class DropboxApi(
         //println("Deleting file " + localFile)
         localFile.delete()
       }
-      case _                                                      => println(s"Doing nothing, local file $localFile doesn't exist")
+      case _                                                      =>
+        println(s"Doing nothing, local file $localFile doesn't exist")
     }
   }
 

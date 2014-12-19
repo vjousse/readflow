@@ -3,16 +3,20 @@ package readflow.user
 import readflow.app.Env
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
 
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{ BSONObjectID, BSONDocument }
 import reactivemongo.core.commands.LastError
 
+import java.io.File
+
 import play.api.libs.concurrent.Execution.Implicits._
 
 final class UserApi(
-  userColl : BSONCollection) {
+  userColl : BSONCollection,
+  storagePath: String) {
 
   import User.userBSONHandler
 
@@ -31,6 +35,9 @@ final class UserApi(
 
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
+
+  def pathForUser(user: User): String =
+    storagePath + File.separator + user.dropboxUserId + File.separator
 
   def getOrInsertUser(accessToken: String): Future[User] = {
 
@@ -67,6 +74,7 @@ final class UserApi(
     // get a future update
     userColl.update(selector, modifier)
   }
+
 
 }
 
