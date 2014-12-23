@@ -41,8 +41,10 @@ final class EbookApi(
   }
 
   def recursiveListFiles(f: File): Array[File] = {
-    val these = f.listFiles
-    these ++ these.filter(_.isDirectory).flatMap(recursiveListFiles)
+    val these: Option[Array[File]] = Option(f.listFiles)
+    these.map { files =>
+      files ++ files.filter(_.isDirectory).flatMap(recursiveListFiles)
+    } getOrElse Array[File]()
   }
 
 }
