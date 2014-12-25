@@ -37,8 +37,15 @@ final class EbookApi(
   }
 
   def listDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
+    Future(listFiles(new File(userApi.pathForUser(user) + dir)).toList)
+  }
+
+  def listRecursiveDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
     Future(recursiveListFiles(new File(userApi.pathForUser(user) + dir)).toList)
   }
+
+  def listFiles(f: File): Array[File] =
+    Option(f.listFiles) getOrElse Array[File]()
 
   def recursiveListFiles(f: File): Array[File] = {
     val these: Option[Array[File]] = Option(f.listFiles)
