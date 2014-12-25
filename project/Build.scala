@@ -13,6 +13,7 @@ object ApplicationBuild extends Build {
     "com.github.Shinsuke-Abe" %% "dropbox4s" % "0.2.0",
     "org.scalaj" %% "scalaj-http" % "1.0.1",
     "commons-io" % "commons-io" % "2.4",
+    "org.pegdown" % "pegdown" % "1.4.2",
     "org.reactivemongo" %% "play2-reactivemongo" % "0.10.5.0.akka23"
   )
 

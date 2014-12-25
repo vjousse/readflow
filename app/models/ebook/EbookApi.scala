@@ -8,8 +8,11 @@ import nl.siegmann.epublib.domain.Metadata;
 import nl.siegmann.epublib.domain.Resource;
 import nl.siegmann.epublib.domain.TOCReference;
 
+import org.pegdown.{Extensions, PegDownProcessor}
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.io.Source
 
 import readflow.user.User
 import readflow.user.UserApi
@@ -29,15 +32,27 @@ final class EbookApi(
     Left("Book not created")
   }
 
-  def createEbookForDirectory(directory: String) = {
-    val localDir = new File(directory)
-    if(localDir.isDirectory()) {
+  def createEbookForDirectory(directory: String, user: User) = {
 
+    def mdFiles(file: File): Boolean =
+      file.getAbsolutePath().toLowerCase().endsWith(".md")
+
+    listDirectoryForUser(directory, user, mdFiles).map {
+      _.map(file =>
+          print(markdownToHtml(file)))
     }
   }
 
-  def listDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
-    Future(listFiles(new File(userApi.pathForUser(user) + dir)).toList)
+  def markdownToHtml(file: File, encoding: String = "utf-8"): String =
+    (new PegDownProcessor(Extensions.ALL)).markdownToHtml(
+      Source.fromFile(file, encoding).getLines.toList.mkString("\n")
+    )
+
+  def listDirectoryForUser(
+    dir: String,
+    user: User,
+    f: (File => Boolean) = (a=> true)) : Future[List[File]]= {
+    Future(listFiles(new File(userApi.pathForUser(user) + dir)).filter(f).toList)
   }
 
   def listRecursiveDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
