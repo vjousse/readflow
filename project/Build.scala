@@ -14,6 +14,8 @@ object ApplicationBuild extends Build {
     "org.scalaj" %% "scalaj-http" % "1.0.1",
     "commons-io" % "commons-io" % "2.4",
     "org.pegdown" % "pegdown" % "1.4.2",
+    "net.sf.kxml" % "kxml2" % "2.3.0",
+    "xmlpull" % "xmlpull" % "1.1.3.4d_b4_min",
     "org.reactivemongo" %% "play2-reactivemongo" % "0.10.5.0.akka23"
   )
 
