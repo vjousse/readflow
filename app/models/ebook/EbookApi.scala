@@ -50,7 +50,6 @@ final class EbookApi(
       // Add an Author
       metadata.addAuthor(new Author("Vincent", "Jousse"))
 
-
       // Add a section per file
       listDirectoryForUser(directory, user, mdFiles).map {
         _.map(file =>
@@ -70,6 +69,11 @@ final class EbookApi(
   }
 
   def markdownToHtml(file: File, encoding: String = "utf-8"): String =
+    (new PegDownProcessor(Extensions.ALL)).markdownToHtml(
+      Source.fromFile(file, encoding).getLines.toList.mkString("\n")
+    )
+
+  def markdownToHtmlFile(file: File, encoding: String = "utf-8") =
     (new PegDownProcessor(Extensions.ALL)).markdownToHtml(
       Source.fromFile(file, encoding).getLines.toList.mkString("\n")
     )
