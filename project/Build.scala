@@ -23,6 +23,7 @@ object ApplicationBuild extends Build {
     version := appVersion,
     libraryDependencies ++= appDependencies,
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+    javaOptions in Test += "-Dconfig.file=conf/application.test.conf",
     resolvers ++= Seq(
       "bintray" at "http://dl.bintray.com/shinsuke-abe/maven"
     )
