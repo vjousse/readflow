@@ -13,9 +13,9 @@ import play.api.test.Helpers._
 
 class UserApiSpec extends Specification {
 
-  "Application" should {
+  "UserApi paths" should {
 
-    "do something" in new WithApplication{
+    "should convert .md paths to .html paths" in new WithApplication{
       val config = readflow.app.PlayApp.loadConfig
 
       val storagePath = config.getString("dropbox.storagePath")
@@ -42,6 +42,7 @@ class UserApiSpec extends Specification {
 
       userApi.basePathForUser(user) must beEqualTo("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/")
       userApi.htmlPathForFilePath("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/files/test.md", user) must beEqualTo("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/html/test.html")
+      userApi.htmlPathForFilePath("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/files/directory/test.md", user) must beEqualTo("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/html/directory/test.html")
     }
   }
 
