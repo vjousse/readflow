@@ -41,6 +41,7 @@ class UserApiSpec extends Specification {
         htmlPrefix)
 
       userApi.basePathForUser(user) must beEqualTo("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/")
+      userApi.htmlPathForFilePath("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/files/test.md", user) must beEqualTo("/home/vjousse/usr/src/scala/readflow/test/data/dropbox/1/html/test.html")
     }
   }
 

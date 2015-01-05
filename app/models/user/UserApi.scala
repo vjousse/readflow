@@ -13,6 +13,7 @@ import reactivemongo.core.commands.LastError
 import java.io.File
 
 import play.api.libs.concurrent.Execution.Implicits._
+import org.apache.commons.io.FilenameUtils
 
 final class UserApi(
   userColl : BSONCollection,
@@ -46,6 +47,11 @@ final class UserApi(
 
   def htmlPathForUser(user: User): String =
     basePathForUser(user) + htmlPrefix + File.separator
+
+  def htmlPathForFilePath(filePath: String, user: User) = {
+    val tmpPath: String = filePath.replaceFirst(filesPathForUser(user), htmlPathForUser(user))
+    tmpPath.replaceAll(FilenameUtils.getExtension(tmpPath) + "$", "html")
+  }
 
   def getOrInsertUser(accessToken: String): Future[User] = {
 
