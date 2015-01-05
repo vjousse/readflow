@@ -49,7 +49,9 @@ final class DropboxApi(
 
   val infos = DropboxInfos(csrf, appKey, appSecret, redirectUri)
 
-  def getLocalUserDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator
+  def getLocalUserDropboxDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator + "files" + File.separator
+
+  def getLocalUserHtmlDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator + "html" + File.separator
 
   def listDirectory(path: String, accessToken: String): Future[List[DbxEntry]] = Future {
 
@@ -90,7 +92,7 @@ final class DropboxApi(
     val deltas = getDeltasForUser(user)
 
     deltas.map { delta =>
-      if(delta.reset) resetUserDir(user)
+      if(delta.reset) resetDropboxUserDir(user)
       delta.entries.map { case (path, metadata) => syncFileMetadataForUser(user, path, metadata) }
       AppEnv.current.userApi.updateCursorForUser(delta.cursor, user)
     }
@@ -98,7 +100,7 @@ final class DropboxApi(
   }
 
   def syncFileMetadataForUser(user: User, path: String, metadata: Option[Metadata]) = {
-    val localFile = new File(getLocalUserDir(user) + path)
+    val localFile = new File(getLocalUserDropboxDir(user) + path)
     metadata match {
       case Some(metadata)                                         =>
         if (metadata.isDir) FileUtils.forceMkdir(localFile)
@@ -117,8 +119,8 @@ final class DropboxApi(
   }
 
 
-  def resetUserDir(user: User) =
-    FileUtils.deleteQuietly(new File(getLocalUserDir(user)))
+  def resetDropboxUserDir(user: User) =
+    FileUtils.deleteQuietly(new File(getLocalUserDropboxDir(user)))
 
   def downloadFile(remotePath: String, localPath: String, accessToken: String) = {
     // Dirty hack, but dropbox4s requires the full DbxAuthFinish

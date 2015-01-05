@@ -16,7 +16,9 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 final class UserApi(
   userColl : BSONCollection,
-  storagePath: String) {
+  storagePath: String,
+  filesPrefix: String = "files",
+  htmlPrefix: String = "html") {
 
   import User.userBSONHandler
 
@@ -36,8 +38,14 @@ final class UserApi(
   def insert(user: User): Future[LastError] =
     userColl.insert(user)
 
-  def pathForUser(user: User): String =
+  def basePathForUser(user: User): String =
     storagePath + File.separator + user.dropboxUserId + File.separator
+
+  def filesPathForUser(user: User): String =
+    basePathForUser(user) + filesPrefix + File.separator
+
+  def htmlPathForUser(user: User): String =
+    basePathForUser(user) + htmlPrefix + File.separator
 
   def getOrInsertUser(accessToken: String): Future[User] = {
 

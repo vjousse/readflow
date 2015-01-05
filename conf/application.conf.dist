@@ -23,6 +23,8 @@ dropbox.app.redirecturi = "http://localhost:9000/dropbox/auth-finish"
 dropbox.oauthtokenuri = "https://api.dropbox.com/1/oauth2/token"
 dropbox.deltauri = "https://api.dropbox.com/1/delta"
 dropbox.storagePath = "/Users/jousse/usr/src/scala/readflow-scala/data/dropbox"
+dropbox.filesPrefix = "files"
+dropbox.htmlPrefix = "html"
 
 # MongoDB configuration using ReactiveMongo plugin
 mongodb.uri = "mongodb://localhost:27017/readflow"

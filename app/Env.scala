@@ -18,6 +18,8 @@ final class Env(
     scheduler: Scheduler) {
 
   val storagePath = config.getString("dropbox.storagePath")
+  val filesPrefix = config.getString("dropbox.filesPrefix")
+  val htmlPrefix = config.getString("dropbox.htmlPrefix")
 
   lazy val db = {
     import play.api.Play.current
@@ -26,7 +28,9 @@ final class Env(
 
   lazy val userApi = new UserApi(
     db[BSONCollection]("user"),
-    storagePath)
+    storagePath,
+    filesPrefix,
+    htmlPrefix)
 
   lazy val ebookApi = new EbookApi(userApi)
 

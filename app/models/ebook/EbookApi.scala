@@ -32,8 +32,12 @@ final class EbookApi(
 
   def createEbookForDirectory(directory: String, user: User) = {
 
-      def getResource(content: String, href: String ): Resource =
-        return new Resource(new ByteArrayInputStream(content.getBytes()), href)
+      def getResource(content: String, href: String ): Resource = {
+        println("Getting resource for " + content)
+        val r= new Resource(new ByteArrayInputStream(content.getBytes()), href)
+        println(r)
+        r
+      }
 
       def mdFiles(file: File): Boolean =
         file.getAbsolutePath().toLowerCase().endsWith(".md")
@@ -73,20 +77,22 @@ final class EbookApi(
       Source.fromFile(file, encoding).getLines.toList.mkString("\n")
     )
 
-  def markdownToHtmlFile(file: File, encoding: String = "utf-8") =
+  def markdownToHtmlFile(file: File, encoding: String = "utf-8") = {
+    val html = markdownToHtml(file, encoding)
     (new PegDownProcessor(Extensions.ALL)).markdownToHtml(
       Source.fromFile(file, encoding).getLines.toList.mkString("\n")
     )
+  }
 
   def listDirectoryForUser(
     dir: String,
     user: User,
     f: (File => Boolean) = (a=> true)) : Future[List[File]]= {
-    Future(listFiles(new File(userApi.pathForUser(user) + dir)).filter(f).toList)
+    Future(listFiles(new File(userApi.filesPathForUser(user) + dir)).filter(f).toList)
   }
 
   def listRecursiveDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
-    Future(recursiveListFiles(new File(userApi.pathForUser(user) + dir)).toList)
+    Future(recursiveListFiles(new File(userApi.filesPathForUser(user) + dir)).toList)
   }
 
   def listFiles(f: File): Array[File] =
