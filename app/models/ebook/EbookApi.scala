@@ -84,7 +84,11 @@ final class EbookApi(
       Source.fromFile(file, encoding).getLines.toList.mkString("\n")
     )
 
-  def markdownToHtmlFile(sourceFile: File, destinationFile: File, encoding: String = "utf-8"): Try[File] =
+  def markdownToHtmlFile(
+    sourceFile: File,
+    destinationFile: File,
+    encoding: String = "utf-8"): Try[File] =
+
     // Jeez, that's a lot of Java stuff
     Try {
       val html = markdownToHtml(sourceFile, encoding)
@@ -101,8 +105,16 @@ final class EbookApi(
   def listDirectoryForUser(
     dir: String,
     user: User,
-    f: (File => Boolean) = (a=> true)) : Future[List[File]]=
-    Future(listFiles(new File(userApi.filesPathForUser(user) + dir)).filter(f).toList)
+    f: (File => Boolean) = ( a => true ),
+    fullPath: Boolean = true
+  ) : Future[List[File]]=
+
+    Future {
+      listFiles(new File(userApi.filesPathForUser(user) + dir)).filter(f).toList.map { f =>
+        if (!fullPath) new File(FilenameUtils.getName(f.getAbsolutePath))
+        else f
+      }
+    }
 
   def listRecursiveDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
     Future(recursiveListFiles(new File(userApi.filesPathForUser(user) + dir)).toList)
