@@ -56,30 +56,26 @@ final class EbookApi(
       metadata.addAuthor(new Author("Vincent", "Jousse"))
 
       // Add a section per file
-      listDirectoryForUser(directory, user, mdFiles).map {
-        _.map(file =>
+      listDirectoryForUser(directory, user, mdFiles).map { files =>
+        files.map(file =>
           // Add Chapter
           markdownToHtmlFile(file, new File(userApi.htmlPathForFilePath(file.getAbsolutePath(), user))) match {
-            case Success(f) => {
+            case Success(f) =>
               book.addSection(
                 file.getName(),
                 getResource(f, f.getName() + ".html")
               )
-            }
-
             case Failure(e) => println("Unable to create html file for " + file)
           }
         )
+
+        // Create EpubWriter
+        var epubWriter = new EpubWriter()
+
+        // Write the Book as Epub
+        epubWriter.write(book, new FileOutputStream("test1_book1.epub"))
+
       }
-      println(book)
-
-      println(book.getTableOfContents().size())
-      // Create EpubWriter
-      var epubWriter = new EpubWriter()
-
-      // Write the Book as Epub
-      epubWriter.write(book, new FileOutputStream("test1_book1.epub"))
-
     }
   }
 
