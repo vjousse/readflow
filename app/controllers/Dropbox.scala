@@ -54,6 +54,10 @@ object Dropbox extends ReadflowController {
           .map { files =>
             Ok(views.html.dropbox.listDirectory(
               if(dir.endsWith("/")) dir else dir + "/",
+              dir.split("/") match {
+                case parts if parts.length > 1 => "/" + parts.slice(1, parts.length-1).mkString("/")
+                case _ => "/"
+              },
               files.map(_.getName()))
             )
           }

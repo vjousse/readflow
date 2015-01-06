@@ -1,11 +1,13 @@
-@(current: String, files: List[String])(implicit session: Session)
+@(current: String, parent: String, files: List[String])(implicit session: Session)
 
 @main("Listing directory") {
     <h1>Listing directory</h1>
-
+    @if(current != "/") {
+    <a href="@routes.Dropbox.listDirectory(parent)">Parent</a>
+    }
     <ul>
     @for(file <- files) {
-        <li><a href="@routes.Dropbox.listDirectory(current + file)">@current@file</a></li>
+        <li><a href="@routes.Dropbox.listDirectory(current + file)">@file</a></li>
     }
     </ul>
 }
