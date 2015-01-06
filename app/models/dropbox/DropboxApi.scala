@@ -49,10 +49,6 @@ final class DropboxApi(
 
   val infos = DropboxInfos(csrf, appKey, appSecret, redirectUri)
 
-  def getLocalUserDropboxDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator + "files" + File.separator
-
-  def getLocalUserHtmlDir(user: User) = storagePath + File.separator + user.dropboxUserId.toString + File.separator + "html" + File.separator
-
   def listDirectory(path: String, accessToken: String): Future[List[DbxEntry]] = Future {
 
       // Dirty hack, but dropbox4s requires the full DbxAuthFinish
@@ -100,7 +96,7 @@ final class DropboxApi(
   }
 
   def syncFileMetadataForUser(user: User, path: String, metadata: Option[Metadata]) = {
-    val localFile = new File(getLocalUserDropboxDir(user) + path)
+    val localFile = new File(AppEnv.current.userApi.filesPathForUser(user) + path)
     metadata match {
       case Some(metadata)                                         =>
         if (metadata.isDir) FileUtils.forceMkdir(localFile)
@@ -120,11 +116,12 @@ final class DropboxApi(
 
 
   def resetDropboxUserDir(user: User) =
-    FileUtils.deleteQuietly(new File(getLocalUserDropboxDir(user)))
+    FileUtils.deleteQuietly(new File(AppEnv.current.userApi.filesPathForUser(user)))
 
   def downloadFile(remotePath: String, localPath: String, accessToken: String) = {
     // Dirty hack, but dropbox4s requires the full DbxAuthFinish
     // object, even if it's only using the token
+    println(s"downloading $remotePath to $localPath")
     implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
     val dropboxPath = DropboxPath(remotePath)
     dropboxPath downloadTo localPath

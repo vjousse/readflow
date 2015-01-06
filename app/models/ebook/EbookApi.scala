@@ -87,9 +87,8 @@ final class EbookApi(
   def listDirectoryForUser(
     dir: String,
     user: User,
-    f: (File => Boolean) = (a=> true)) : Future[List[File]]= {
+    f: (File => Boolean) = (a=> true)) : Future[List[File]]=
     Future(listFiles(new File(userApi.filesPathForUser(user) + dir)).filter(f).toList)
-  }
 
   def listRecursiveDirectoryForUser(dir: String, user: User) : Future[List[File]]= {
     Future(recursiveListFiles(new File(userApi.filesPathForUser(user) + dir)).toList)
