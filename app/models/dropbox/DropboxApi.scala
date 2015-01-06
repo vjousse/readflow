@@ -16,6 +16,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.immutable.HashMap
+import scala.util.{ Failure, Success, Try }
 
 import scalaj.http.{ Http, HttpResponse }
 
@@ -64,13 +65,20 @@ final class DropboxApi(
 
   def getAccessToken(code: String): Either[String, String] = {
 
-    val response = Http(oauthTokenUri)
+    Try {
+      Http(oauthTokenUri)
       .postForm(Seq("code" -> code, "grant_type" -> "authorization_code", "redirect_uri" -> infos.redirectUri))
       .auth(infos.appKey, infos.appSecret)
       .asString
-
-    parseResponse(response).right.map { body =>
-        (Json.parse(body) \ "access_token").as[String]
+    } match {
+      case Success(response) =>
+        parseResponse(response).right.map { body =>
+            (Json.parse(body) \ "access_token").as[String]
+        }
+      case Failure(e) => {
+        e.printStackTrace
+        Left(e.toString)
+      }
     }
   }
 
