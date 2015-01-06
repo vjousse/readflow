@@ -1,6 +1,6 @@
 package readflow.ebook
 
-import java.io.{ ByteArrayInputStream, File, FileOutputStream, InputStream }
+import java.io.{ ByteArrayInputStream, File, FileOutputStream, InputStream, PrintWriter }
 
 import nl.siegmann.epublib.domain.{ Author, Book, Metadata, Resource, TOCReference }
 import nl.siegmann.epublib.epub.EpubWriter
@@ -14,6 +14,7 @@ import scala.util.{ Failure, Success, Try }
 
 import readflow.user.User
 import readflow.user.UserApi
+import org.apache.commons.io.{FileUtils, FilenameUtils}
 
 case class Ebook(
   title: String,
@@ -32,9 +33,9 @@ final class EbookApi(
 
   def createEbookForDirectory(directory: String, user: User) = {
 
-      def getResource(content: String, href: String ): Resource = {
-        println("Getting resource for " + content)
-        val r= new Resource(new ByteArrayInputStream(content.getBytes()), href)
+      def getResource(file: File, href: String): Resource = {
+        println("Getting resource for " + file)
+        val r= new Resource(this.getClass().getResourceAsStream(file.getAbsolutePath()), href)
         println(r)
         r
       }
@@ -58,16 +59,20 @@ final class EbookApi(
       listDirectoryForUser(directory, user, mdFiles).map {
         _.map(file =>
           // Add Chapter 1
-          book.addSection(file.getName(),
-            getResource(markdownToHtml(file), file.getName() + ".html")
-          )
+          markdownToHtmlFile(file, new File(userApi.htmlPathForFilePath(file.getAbsolutePath(), user))) match {
+            case Success(f) => book.addSection(
+              file.getName(),
+              getResource(f, f.getName() + ".html")
+            )
+            case Failure(e) => println("Unable to create html file for " + file)
+          }
         )
       }
       // Create EpubWriter
       val epubWriter = new EpubWriter()
 
       // Write the Book as Epub
-      epubWriter.write(book, new FileOutputStream("/home/vjousse/usr/src/scala/readflow/test1_book1.epub"))
+      epubWriter.write(book, new FileOutputStream("test1_book1.epub"))
 
     }
   }
@@ -77,12 +82,19 @@ final class EbookApi(
       Source.fromFile(file, encoding).getLines.toList.mkString("\n")
     )
 
-  def markdownToHtmlFile(file: File, encoding: String = "utf-8") = {
-    val html = markdownToHtml(file, encoding)
-    (new PegDownProcessor(Extensions.ALL)).markdownToHtml(
-      Source.fromFile(file, encoding).getLines.toList.mkString("\n")
-    )
-  }
+  def markdownToHtmlFile(sourceFile: File, destinationFile: File, encoding: String = "utf-8"): Try[File] =
+    // Jeez, that's a lot of Java stuff
+    Try {
+      val html = markdownToHtml(sourceFile, encoding)
+      val destinationDirectory = FilenameUtils.getFullPath(destinationFile.getAbsolutePath())
+      FileUtils.forceMkdir(new File(destinationDirectory))
+
+      val writer = new PrintWriter(destinationFile)
+      writer.write(html)
+      writer.close()
+
+      destinationFile
+    }
 
   def listDirectoryForUser(
     dir: String,
