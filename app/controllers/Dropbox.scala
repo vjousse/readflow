@@ -44,15 +44,15 @@ object Dropbox extends ReadflowController {
     }
   }
 
-  def listDirectory() = Action.async { implicit request =>
+  def listDirectory(dir: String) = Action.async { implicit request =>
 
     request.session.get("user_id").map { userId =>
       getUser(userId).flatMap { maybeUser =>
         maybeUser.map { user =>
           Env.current.ebookApi.listDirectoryForUser(
-            "/", user, f => f.isDirectory, fullPath = false)
+            dir, user, f => f.isDirectory, fullPath = false)
           .map { files =>
-            Ok(views.html.dropbox.listDirectory(files))
+            Ok(views.html.dropbox.listDirectory(files.map(_.getName())))
           }
         }.getOrElse {
           Future.successful(Unauthorized("No user available in locale cache/db."))

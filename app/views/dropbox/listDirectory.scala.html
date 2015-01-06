@@ -1,11 +1,11 @@
-@(children: List[java.io.File])(implicit session: Session)
+@(files: List[String])(implicit session: Session)
 
 @main("Listing directory") {
     <h1>Listing directory</h1>
 
     <ul>
-    @for(child <- children) {
-        <li>@child</li>
+    @for(file <- files) {
+    <li><a href="@routes.Dropbox.listDirectory(file)">@file</a></li>
     }
     </ul>
 }
