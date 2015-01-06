@@ -1,6 +1,6 @@
 package readflow.ebook
 
-import java.io.{ ByteArrayInputStream, File, FileOutputStream, InputStream, PrintWriter }
+import java.io.{ ByteArrayInputStream, File, FileOutputStream, InputStream, PrintWriter, FileInputStream }
 
 import nl.siegmann.epublib.domain.{ Author, Book, Metadata, Resource, TOCReference }
 import nl.siegmann.epublib.epub.EpubWriter
@@ -34,9 +34,9 @@ final class EbookApi(
   def createEbookForDirectory(directory: String, user: User) = {
 
       def getResource(file: File, href: String): Resource = {
-        println("Getting resource for " + file)
-        val r= new Resource(this.getClass().getResourceAsStream(file.getAbsolutePath()), href)
-        println(r)
+        println("Getting resource for file " + file.getAbsolutePath())
+        val r = new Resource(new FileInputStream(file), href)
+        println("Here is the resource : " + r)
         r
       }
 
@@ -47,7 +47,7 @@ final class EbookApi(
     Try {
       // Create new Book
       var book = new Book()
-      val metadata = book.getMetadata()
+      var metadata = book.getMetadata()
 
       // Set the title
       metadata.addTitle("Test ebook")
@@ -58,18 +58,24 @@ final class EbookApi(
       // Add a section per file
       listDirectoryForUser(directory, user, mdFiles).map {
         _.map(file =>
-          // Add Chapter 1
+          // Add Chapter
           markdownToHtmlFile(file, new File(userApi.htmlPathForFilePath(file.getAbsolutePath(), user))) match {
-            case Success(f) => book.addSection(
-              file.getName(),
-              getResource(f, f.getName() + ".html")
-            )
+            case Success(f) => {
+              book.addSection(
+                file.getName(),
+                getResource(f, f.getName() + ".html")
+              )
+            }
+
             case Failure(e) => println("Unable to create html file for " + file)
           }
         )
       }
+      println(book)
+
+      println(book.getTableOfContents().size())
       // Create EpubWriter
-      val epubWriter = new EpubWriter()
+      var epubWriter = new EpubWriter()
 
       // Write the Book as Epub
       epubWriter.write(book, new FileOutputStream("test1_book1.epub"))
