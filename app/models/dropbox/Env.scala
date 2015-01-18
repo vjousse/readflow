@@ -8,6 +8,8 @@ import com.dropbox.core.{DbxAppInfo, DbxAuthFinish, DbxEntry, DbxWebAuthNoRedire
 import com.dropbox.core.DbxEntry.WithChildren
 import scala.concurrent.duration._
 
+import readflow.PlayLogger
+
 final class Env(
     config: Config,
     system: ActorSystem,
@@ -37,7 +39,8 @@ final class Env(
     redirectUri,
     oauthTokenUri,
     deltaUri,
-    storagePath)
+    storagePath,
+    PlayLogger)
 
   // Sync Dropbox files every minute
   scheduler.schedule(0.microsecond, 1.minute)(dropboxApi.syncFiles)

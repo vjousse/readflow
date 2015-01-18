@@ -14,6 +14,7 @@ import scala.util.{ Failure, Success, Try }
 
 import readflow.user.User
 import readflow.user.UserApi
+import readflow.Logger
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 
 case class Ebook(
@@ -21,7 +22,8 @@ case class Ebook(
   author: String)
 
 final class EbookApi(
-  userApi: UserApi) {
+  userApi: UserApi,
+  logger: Logger) {
 
   def createEbook(): Either[String, String] = {
     // Create new Book
@@ -34,9 +36,9 @@ final class EbookApi(
   def createEbookForDirectory(directory: String, user: User) = {
 
       def getResource(file: File, href: String): Resource = {
-        println("Getting resource for file " + file.getAbsolutePath())
+        logger.debug("Getting resource for file " + file.getAbsolutePath())
         val r = new Resource(new FileInputStream(file), href)
-        println("Here is the resource : " + r)
+        logger.debug("Here is the resource : " + r)
         r
       }
 
@@ -65,7 +67,7 @@ final class EbookApi(
                 file.getName(),
                 getResource(f, f.getName() + ".html")
               )
-            case Failure(e) => println("Unable to create html file for " + file)
+            case Failure(e) => logger.error("Unable to create html file for " + file)
           }
         )
 
@@ -112,6 +114,8 @@ final class EbookApi(
     Future {
       val userDir = new File(userApi.filesPathForUser(user)).getCanonicalFile
       val dirToList = new File(userDir.getAbsolutePath + dir).getCanonicalFile
+
+      // Check if we're not listing a subdirectory
       if(dirToList.getAbsolutePath.startsWith(userDir.getAbsolutePath)) {
         listFiles(dirToList).filter(f).toList.map { f =>
           if (!fullPath) new File(f.getAbsolutePath)

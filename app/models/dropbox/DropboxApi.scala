@@ -24,6 +24,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 import readflow.dropbox.Reads._
+import readflow.Logger
 
 import org.apache.commons.io.FileUtils
 
@@ -41,7 +42,8 @@ final class DropboxApi(
   redirectUri: String,
   oauthTokenUri:String,
   deltaUri: String,
-  storagePath: String) extends CoreApi {
+  storagePath: String,
+  logger: Logger) extends CoreApi {
 
   val applicationName = appName
   val version = appVersion
@@ -110,15 +112,13 @@ final class DropboxApi(
         if (metadata.isDir) FileUtils.forceMkdir(localFile)
         else downloadFile(path, localFile.getAbsolutePath(), user.accessToken)
       case None if localFile.exists() && localFile.isDirectory()  => {
-        //println("Deleting directory " + localFile)
         FileUtils.deleteDirectory(localFile)
       }
       case None if localFile.exists() && !localFile.isDirectory() => {
-        //println("Deleting file " + localFile)
         localFile.delete()
       }
       case _                                                      =>
-        println(s"Doing nothing, local file $localFile doesn't exist")
+        logger.error(s"Doing nothing, local file $localFile doesn't exist")
     }
   }
 
@@ -129,14 +129,14 @@ final class DropboxApi(
   def downloadFile(remotePath: String, localPath: String, accessToken: String) = {
     // Dirty hack, but dropbox4s requires the full DbxAuthFinish
     // object, even if it's only using the token
-    println(s"downloading $remotePath to $localPath")
+    logger.debug(s"downloading $remotePath to $localPath")
     implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
     val dropboxPath = DropboxPath(remotePath)
     dropboxPath downloadTo localPath
   }
 
   def syncFiles() = {
-    println("syncing files")
+    logger.debug("syncing files")
     val fuUsers: Future[List[User]] = AppEnv.current.userApi.findAll()
     fuUsers.map { users =>
       users.map( user => syncFilesForUser(user) )
@@ -156,7 +156,7 @@ final class DropboxApi(
 
     parseResponse(response) match {
       case Left(err) => {
-        println("Error when getting deltas: " + response)
+        logger.error("Error when getting deltas: " + response)
         Nil
       }
       case Right(body) => {

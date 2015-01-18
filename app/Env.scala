@@ -2,6 +2,7 @@ package readflow.app
 
 import readflow.user.UserApi
 import readflow.ebook.EbookApi
+import readflow.PlayLogger
 
 import akka.actor._
 import com.typesafe.config.Config
@@ -9,7 +10,6 @@ import com.typesafe.config.Config
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DB
 import reactivemongo.api.collections.default.BSONCollection
-
 
 final class Env(
     config: Config,
@@ -32,7 +32,7 @@ final class Env(
     filesPrefix,
     htmlPrefix)
 
-  lazy val ebookApi = new EbookApi(userApi)
+  lazy val ebookApi = new EbookApi(userApi, PlayLogger)
 
 }
 
