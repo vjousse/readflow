@@ -1,4 +1,4 @@
-@(current: String, parent: String, files: List[String])(implicit session: Session)
+@(current: String, parent: String, dirs: List[String], files: List[String])(implicit session: Session)
 
 @main("Listing directory") {
     <h1>Listing directory</h1>
@@ -6,8 +6,14 @@
     <a href="@routes.Dropbox.listDirectory(parent)">Parent</a>
     }
     <ul>
+    @for(dir <- dirs) {
+        <li><a href="@routes.Dropbox.listDirectory(current + dir)">@dir</a></li>
+    }
+    </ul>
+
+    <ul>
     @for(file <- files) {
-        <li><a href="@routes.Dropbox.listDirectory(current + file)">@file</a></li>
+        <li>@file</li>
     }
     </ul>
 }
