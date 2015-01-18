@@ -110,9 +110,15 @@ final class EbookApi(
   ) : Future[List[File]]=
 
     Future {
-      listFiles(new File(userApi.filesPathForUser(user) + dir)).filter(f).toList.map { f =>
-        if (!fullPath) new File(FilenameUtils.getName(f.getAbsolutePath))
-        else f
+      val userDir = new File(userApi.filesPathForUser(user)).getCanonicalFile
+      val dirToList = new File(userDir.getAbsolutePath + dir).getCanonicalFile
+      if(dirToList.getAbsolutePath.startsWith(userDir.getAbsolutePath)) {
+        listFiles(dirToList).filter(f).toList.map { f =>
+          if (!fullPath) new File(f.getAbsolutePath)
+          else f
+        }
+      } else {
+        List()
       }
     }
 
