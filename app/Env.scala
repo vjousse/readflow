@@ -37,7 +37,7 @@ final class Env(
 
   lazy val ebookApi = new EbookApi(userApi, PlayLogger)
 
-  lazy val sync = new Sync(userApi, dropboxApi, PlayLogger)
+  lazy val sync = new Sync(userApi, dropboxApi, ebookApi, PlayLogger)
 
   // Sync Dropbox files every minute
 

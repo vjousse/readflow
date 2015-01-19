@@ -33,6 +33,11 @@ final class EbookApi(
     Left("Book not created")
   }
 
+  def createEbooksForUser(user: User) = {
+    // Check each directory, create an entry in mongo with a md5 hash
+    // Create the ebook
+  }
+
   def createEbookForDirectory(directory: String, user: User) = {
 
       def getResource(file: File, href: String): Resource = {
