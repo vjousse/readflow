@@ -3,12 +3,10 @@ package readflow.dropbox
 import akka.actor._
 import com.typesafe.config.Config
 
-import play.api.libs.concurrent.Execution.Implicits._
 import com.dropbox.core.{DbxAppInfo, DbxAuthFinish, DbxEntry, DbxWebAuthNoRedirect}
 import com.dropbox.core.DbxEntry.WithChildren
-import scala.concurrent.duration._
 
-import readflow.PlayLogger
+import readflow.app.PlayLogger
 
 final class Env(
     config: Config,
@@ -42,8 +40,6 @@ final class Env(
     storagePath,
     PlayLogger)
 
-  // Sync Dropbox files every minute
-  scheduler.schedule(0.microsecond, 1.minute)(dropboxApi.syncFiles)
 }
 
 object Env {

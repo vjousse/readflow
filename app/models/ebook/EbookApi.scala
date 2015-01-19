@@ -14,7 +14,7 @@ import scala.util.{ Failure, Success, Try }
 
 import readflow.user.User
 import readflow.user.UserApi
-import readflow.Logger
+import readflow.app.Logger
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 
 case class Ebook(

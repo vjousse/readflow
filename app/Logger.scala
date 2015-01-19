@@ -1,4 +1,4 @@
-package readflow
+package readflow.app
 import play.api.{ Logger => DefaultPlayLogger }
 
 trait Logger {

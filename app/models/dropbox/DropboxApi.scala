@@ -15,7 +15,6 @@ import scala.language.postfixOps
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.immutable.HashMap
 import scala.util.{ Failure, Success, Try }
 
 import scalaj.http.{ Http, HttpResponse }
@@ -24,9 +23,11 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 import readflow.dropbox.Reads._
-import readflow.Logger
+import readflow.app.Logger
 
 import org.apache.commons.io.FileUtils
+
+import reactivemongo.core.commands.LastError
 
 case class DropboxInfos(
   csrf: String,
@@ -93,9 +94,9 @@ final class DropboxApi(
   }
 
 
-  def syncFilesForUser(user: User) = {
+  def syncFilesForUser(user: User): List[Future[LastError]] = {
 
-    val deltas = getDeltasForUser(user)
+    val deltas: List[Delta] = getDeltasForUser(user)
 
     deltas.map { delta =>
       if(delta.reset) resetDropboxUserDir(user)
@@ -133,14 +134,6 @@ final class DropboxApi(
     implicit val auth: DbxAuthFinish = new DbxAuthFinish(accessToken, "", "")
     val dropboxPath = DropboxPath(remotePath)
     dropboxPath downloadTo localPath
-  }
-
-  def syncFiles() = {
-    logger.debug("syncing files")
-    val fuUsers: Future[List[User]] = AppEnv.current.userApi.findAll()
-    fuUsers.map { users =>
-      users.map( user => syncFilesForUser(user) )
-    }
   }
 
   def getAccountInfoForToken(token: String): DbxAccountInfo= {
