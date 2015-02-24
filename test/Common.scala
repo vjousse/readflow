@@ -6,8 +6,9 @@ import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DB
 import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.{ BSONObjectID, BSONDocument }
 
-import readflow.user.UserApi
+import readflow.user.{ User, UserApi }
 import readflow.ebook.EbookApi
 
 class ReadflowApplication extends WithApplication {
@@ -32,5 +33,13 @@ class ReadflowApplication extends WithApplication {
   val ebookApi = new EbookApi(
     userApi,
     readflow.app.PlayLogger)
+
+
+  val user = User(
+    BSONObjectID.generate,
+    "accessToken",
+    1,
+    "Test user",
+    "FR")
 
 }

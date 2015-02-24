@@ -9,7 +9,8 @@ class EbookApiSpec extends Specification {
   "EbookApi" should {
 
     "convert .md paths to .html paths" in new ReadflowApplication {
-      println(System.getProperty("user.dir"))
+
+      ebookApi.createEbooksForUser(user)
 
     }
   }

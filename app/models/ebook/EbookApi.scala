@@ -34,6 +34,10 @@ final class EbookApi(
   }
 
   def createEbooksForUser(user: User) = {
+    logger.debug("creating ebooks for user")
+    listDirectoryForUser("/", user, f => f.isDirectory, fullPath = false).map { s =>
+      logger.debug(s.mkString(" "))
+    }
     // Check each directory, create an entry in mongo with a md5 hash
     // Create the ebook
   }
@@ -123,6 +127,7 @@ final class EbookApi(
       // Check if we're not listing a subdirectory
       if(dirToList.getAbsolutePath.startsWith(userDir.getAbsolutePath)) {
         listFiles(dirToList).filter(f).toList.map { f =>
+          logger.debug(f.getCanonicalFile.toString)
           if (!fullPath) new File(f.getAbsolutePath)
           else f
         }
