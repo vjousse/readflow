@@ -48,6 +48,12 @@ final class UserApi(
   def htmlPathForUser(user: User): String =
     basePathForUser(user) + htmlPrefix + File.separator
 
+  def relativePathForUser(user: User, path: String): Option[String] = {
+    val newPath = path.replaceFirst(basePathForUser(user), "")
+    if(newPath == path) None
+    else Some(newPath)
+  }
+
   def htmlPathForFilePath(filePath: String, user: User) = {
     val tmpPath: String = filePath.replaceFirst(filesPathForUser(user), htmlPathForUser(user))
     tmpPath.replaceAll(FilenameUtils.getExtension(tmpPath) + "$", "html")
